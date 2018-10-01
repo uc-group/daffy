@@ -1,0 +1,22 @@
+version: '3.0'
+
+services:
+    server:
+        build:
+            context: './dev'
+        working_dir: /var/www/daffy
+        volumes:
+            - ./app:/var/www/daffy
+            - ./dev/vhost.conf:/etc/apache2/sites-available/000-default.conf
+        ports:
+            - "80:80"
+        environment:
+          - APACHE_RUN_USER=daffy
+          - APACHE_RUN_GROUP=daffy
+    assets:
+        image: 'node:8'
+        working_dir: /usr/node/app
+        user: node
+        volumes:
+            - ./app:/usr/node/app
+        command: 'bash -c "yarn install && npm run watch"'
