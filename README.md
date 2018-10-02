@@ -1,10 +1,10 @@
 # DaFFy, the Dockerfile Factory
 
-##Development
+## Development
 
 For development environment use [DaFFy Pond](https://github.com/uc-group/daffy-pond).
 
-##Project building
+## Project building
 
 To build project php container with the application run `docker build -t {my_daffy_image_name}:{version}`
 
