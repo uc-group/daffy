@@ -11,10 +11,10 @@ use Symfony\Component\Routing\Annotation\Route;
 class DefaultController extends Controller
 {
     /**
-     * @Route("/", name="homepage")
+     * @Route("/", name="app")
      */
-    public function homepage()
+    public function app()
     {
-        return $this->render('default/homepage.html.twig');
+        return $this->render('default/app.html.twig');
     }
 }
