@@ -1,5 +1,31 @@
+@import "~vue-material/dist/theme/engine";
+@include md-register-theme("default", (
+        primary: md-get-palette-color(blue, 600), // The primary color of your application
+        accent: md-get-palette-color(orange, A200) // The accent or secondary color
+));
+@import "~vue-material/dist/theme/all";
+
 body {
     background-color: lightgray;
+}
+
+.d-icon {
+    height: 32px;
+    width: 32px;
+}
+
+.md-toolbar {
+    &.md-primary {
+        .d-icon {
+            @include md-theme-property(fill, text-primary, primary);
+        }
+    }
+}
+
+.d-content {
+    &--main {
+        min-height: 500px;
+    }
 }
 
 [v-cloak] {
