@@ -8,7 +8,8 @@ use App\Model\Dockerfile\InstructionInterface;
 class InvalidInstructionUsageException extends \Exception
 {
     /**
-     * @param Instruction $name
+     * @param InstructionInterface $instruction
+     * @param string $target
      */
     public function __construct(InstructionInterface $instruction, string $target)
     {
