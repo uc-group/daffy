@@ -43,7 +43,7 @@ class Image
     {
         $elements = explode(':', $imageName, 2);
 
-        if ($elements === false) {
+        if ($elements === false || strlen($imageName) === 0) {
             throw new InvalidNameException($imageName);
         }
 

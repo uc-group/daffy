@@ -41,7 +41,7 @@ class Instruction
     {
         $this->name = $name;
         $this->arguments = $arguments;
-        $this->argumentsAsArray = true;
+        $this->argumentsAsArray = $argumentsAsArray;
     }
 
     /**
@@ -52,20 +52,20 @@ class Instruction
     public static function add(string $source, string $destination): self
     {
         return new self(self::ADD, [
-            $source,
-            $destination
+            self::addQuotes($source),
+            self::addQuotes($destination)
         ], true);
     }
 
     /**
-     * @param array $source
+     * @param array $sources
      * @param string $destination
      * @return Instruction
      */
-    public static function addMultipleSources(array $source, string $destination): self
+    public static function addMultipleSources(array $sources, string $destination): self
     {
-        $args = $source;
-        $args[] = $destination;
+        $args = self::addQuotes($sources);
+        $args[] = self::addQuotes($destination);
 
         return new self(self::ADD, $args, true);
     }
@@ -77,23 +77,23 @@ class Instruction
      */
     public static function copy(string $source, string $destination): self
     {
-        return new self(self::ADD, [
-            $source,
-            $destination
+        return new self(self::COPY, [
+            self::addQuotes($source),
+            self::addQuotes($destination)
         ], true);
     }
 
     /**
-     * @param array $source
+     * @param array $sources
      * @param string $destination
      * @return Instruction
      */
-    public static function copyMultipleSources(array $source, string $destination): self
+    public static function copyMultipleSources(array $sources, string $destination): self
     {
-        $args = $source;
-        $args[] = $destination;
+        $args = self::addQuotes($sources);
+        $args[] = self::addQuotes($destination);
 
-        return new self(self::ADD, $args, true);
+        return new self(self::COPY, $args, true);
     }
 
     /**
@@ -111,19 +111,22 @@ class Instruction
      */
     public static function from(Image $image, string $alias = null)
     {
-        return new self(self::FROM, [
-            (string)$image,
-            $alias ? ['AS', $alias] : []
-        ]);
+        $args = [(string)$image];
+        if ($alias) {
+            $args[] = 'AS';
+            $args[] = $alias;
+        }
+
+        return new self(self::FROM, $args);
     }
 
     /**
-     * @param array $arguments
+     * @param string[] $commands
      * @return Instruction
      */
-    public static function run(array $arguments): self
+    public static function run(string ...$commands): self
     {
-        return new self(self::RUN, $arguments);
+        return new self(self::RUN, [implode (' && ', $commands)]);
     }
 
     /**
@@ -136,5 +139,23 @@ class Instruction
         }
 
         return trim(sprintf('%s %s', $this->name, implode(' ', $this->arguments)));
+    }
+
+    /**
+     * @param string[]|string $target
+     * @return string[]|string
+     */
+    private static function addQuotes($target)
+    {
+        if (is_array($target)) {
+            $quoted = [];
+            foreach ($target as $element) {
+                $quoted[] = sprintf('"%s"', $element);
+            }
+
+            return $quoted;
+        }
+
+        return sprintf('"%s"', $target);
     }
 }

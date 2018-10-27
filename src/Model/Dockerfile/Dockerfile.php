@@ -29,7 +29,7 @@ class Dockerfile
     }
 
     /**
-     *
+     * Adds empty line
      */
     public function addEmptyLine(): void
     {
