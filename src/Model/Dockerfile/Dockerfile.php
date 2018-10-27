@@ -21,9 +21,9 @@ class Dockerfile
     }
 
     /**
-     * @param Instruction $instruction
+     * @param InstructionInterface $instruction
      */
-    public function addInstruction(Instruction $instruction): void
+    public function addInstruction(InstructionInterface $instruction): void
     {
         $this->instructions[] = $instruction;
     }
