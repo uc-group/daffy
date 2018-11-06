@@ -10,9 +10,9 @@ class Inflector
      */
     public static function toNormalizedHyphenCase(string $name): string
     {
-        return str_replace(
-            ['/\s+/', '/\s|\./', '/[^a-z0-9\-]/'],
-            [' ', '-', ''],
+        return preg_replace(
+            ['/[^a-z0-9_\s\.]/', '/\s+|\.+/', '/_+/'],
+            ['', '_', '_'],
             strtolower($name)
         );
     }

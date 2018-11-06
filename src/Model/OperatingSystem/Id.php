@@ -27,7 +27,16 @@ class Id
      */
     public static function fromNameAndVersion(string $name, string $version): self
     {
-        return new self(Inflector::toNormalizedHyphenCase($name) . '_' . Inflector::toNormalizedHyphenCase($version));
+        return new self(Inflector::toNormalizedHyphenCase($name) . '-' . Inflector::toNormalizedHyphenCase($version));
+    }
+
+    /**
+     * @param string $value
+     * @return Id
+     */
+    public static function fromString(string $value): self
+    {
+        return new self($value);
     }
 
     /**

@@ -44,11 +44,11 @@ class OperatingSystem implements \JsonSerializable
     }
 
     /**
-     * @return string
+     * @return Id
      */
-    public function getId(): string
+    public function getId(): Id
     {
-        return $this->id;
+        return Id::fromString($this->id);
     }
 
     /**
@@ -85,6 +85,21 @@ class OperatingSystem implements \JsonSerializable
     {
         $imageConfig->setOperatingSystem(null);
         $this->imageConfigs->removeElement($imageConfig);
+    }
+
+    /**
+     * @param array $imageConfigs
+     */
+    public function updateImages(array $imageConfigs)
+    {
+        foreach ($this->imageConfigs as $config) {
+            $config->setOperatingSystem(null);
+        }
+
+        $this->imageConfigs->clear();
+        foreach ($imageConfigs as $imageConfig) {
+            $this->addImageConfig($imageConfig);
+        }
     }
 
     /**

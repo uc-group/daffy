@@ -11,5 +11,11 @@ export default {
             description,
             images
         });
+    },
+    update(id, description, images) {
+        return Api.post('os_update', {id}, {description, images});
+    },
+    delete(ids) {
+        return Api.post('os_delete', {}, {id: ids});
     }
 }

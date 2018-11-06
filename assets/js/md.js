@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import 'vue-material/dist/vue-material.min.css';
 import { MdApp, MdButton, MdContent, MdTabs, MdToolbar, MdDrawer, MdList, MdIcon, MdTable, MdSpeedDial, MdField,
-    MdDialog, MdCard, MdRipple } from 'vue-material/dist/components';
+    MdDialog, MdCard, MdRipple, MdChips, MdCheckbox, MdEmptyState } from 'vue-material/dist/components';
 
 Vue.use(MdApp);
 Vue.use(MdButton);
@@ -17,3 +17,6 @@ Vue.use(MdField);
 Vue.use(MdDialog);
 Vue.use(MdCard);
 Vue.use(MdRipple);
+Vue.use(MdChips);
+Vue.use(MdCheckbox);
+Vue.use(MdEmptyState);
