@@ -11,7 +11,7 @@
     <body>
         <div id="app" class="page-container" v-cloak>
             <md-app>
-                <md-app-toolbar class="md-primary">
+                <md-app-toolbar class="md-primary" md-elevation="0">
                     <md-button class="md-icon-button" @click="toggleMenu" v-if="!menuVisible">
                         <md-icon>menu</md-icon>
                     </md-button>
@@ -34,30 +34,31 @@
                         </div>
                     </md-toolbar>
 
-                    <md-list>
+                    <md-list :md-expand-single="true">
                         <md-list-item href="{{ path('app') }}">
                             <md-icon>dashboard</md-icon>
                             <span class="md-list-item-text">
                                 Dashboard
                             </span>
                         </md-list-item>
-                        <md-list-item href="{{ path('app') }}">
+                        <md-list-item md-expand :md-expanded.sync="dockerExpand">
+                            <fa-icon class="md-icon md-icon-font md-theme-default" :icon="['fab', 'docker']"></fa-icon>
+                            <span class="md-list-item-text">
+                                Docker
+                            </span>
+                            <md-list slot="md-expand">
+                                <md-list-item class="md-inset" href="{{ path('dockerfile') }}">Dockerfile</md-list-item>
+                                <md-list-item class="md-inset">docker-compose</md-list-item>
+                            </md-list>
+                        </md-list-item>
+                        <md-list-item md-expand :md-expanded.sync="settingsExpand">
                             <md-icon>settings</md-icon>
                             <span class="md-list-item-text">
                                 Settings
                             </span>
-                        </md-list-item>
-                        <md-list-item href="{{ path('app') }}">
-                            <md-icon>bookmarks</md-icon>
-                            <span class="md-list-item-text">
-                                Templates
-                            </span>
-                        </md-list-item>
-                        <md-list-item href="{{ path('dockerfile') }}">
-                            <fa-icon class="md-icon md-icon-font md-theme-default" :icon="['fab', 'docker']"></fa-icon>
-                            <span class="md-list-item-text">
-                                Dockerfile
-                            </span>
+                            <md-list slot="md-expand">
+                                <md-list-item class="md-inset" href="{{ path('settings_os') }}">Operating systems</md-list-item>
+                            </md-list>
                         </md-list-item>
                     </md-list>
                 </md-app-drawer>
@@ -69,6 +70,8 @@
         </div>
         {% block javascripts %}
             <script src="{{ asset('build/manifest.js') }}"></script>
+            <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
+            <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
             <script src="{{ asset('build/vendor.js') }}"></script>
             <script src="{{ asset('build/app.js') }}"></script>
         {% endblock %}

@@ -5,6 +5,7 @@
         "@fortawesome/free-solid-svg-icons": "^5.4.2",
         "@fortawesome/vue-fontawesome": "^0.1.1",
         "@symfony/webpack-encore": "^0.20.0",
+        "axios": "^0.18.0",
         "lodash": "^4.17.11",
         "node-sass": "^4.9.3",
         "sass-loader": "^7.1.0",
@@ -14,6 +15,7 @@
         "vue-material": "^1.0.0-beta-10.2",
         "vue-mq": "^0.2.1",
         "vue-template-compiler": "^2.5.17",
+        "vuelidate": "^0.7.4",
         "webpack-notifier": "^1.6.0"
     },
     "license": "UNLICENSED",

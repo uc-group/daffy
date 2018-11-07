@@ -5,7 +5,7 @@
                 <md-table-head>Name</md-table-head>
                 <md-table-head>Description</md-table-head>
             </md-table-row>
-            <md-table-row v-for="file in files">
+            <md-table-row :key="file.name" v-for="file in files">
                 <md-table-cell>{{ file.name }}</md-table-cell>
                 <md-table-cell>{{ file.description }}</md-table-cell>
             </md-table-row>
