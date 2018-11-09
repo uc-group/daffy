@@ -2,199 +2,147 @@
 
 namespace App\Model\DockerCompose;
 
-use App\Model\DockerCompose\Service\Build;
-use App\Model\DockerCompose\Service\Port;
-use App\Model\DockerCompose\Service\Volume;
-use App\Model\DockerCompose\Util\Args;
+use App\Model\DockerCompose\Service\Element\Port;
+use App\Model\DockerCompose\Service\Element\Volume;
 
-class Service
+abstract class Service
 {
     /**
      * @var string
      */
-    private $name;
+    protected $name;
 
     /**
      * @var string
      */
-    private $image;
+    protected $containerName;
 
     /**
-     * @var Build
+     * @var Port[]|array
      */
-    private $build;
+    protected $ports;
 
     /**
-     * @var Port[]
+     * @var array
      */
-    private $ports;
+    protected $networks;
 
     /**
-     * @var
+     * @var array
      */
-    private $networks;
+    protected $dependsOn;
 
     /**
-     * @var Args
+     * @var Volume[]|array
      */
-    private $dependsOn;
+    protected $volumes;
 
     /**
-     * @var Volume[]
+     * @var array
      */
-    private $volumes;
+    protected $dns;
 
     /**
-     * @var string
+     * @param string $name
      */
-    private $containerName;
-
-    /**
-     * @var Args|string
-     */
-    private $dns;
+    public function __construct(string $name)
+    {
+        $this->name = $name;
+        $this->ports = [];
+        $this->volumes = [];
+        $this->dependsOn = [];
+        $this->dns = [];
+    }
 
     /**
      * @return string
      */
-    public function getName(): string
+    public function getName()
     {
         return $this->name;
     }
 
     /**
-     * @param string $name
+     * @param null|string $containerName
      */
-    public function setName(string $name): void
-    {
-        $this->name = $name;
-    }
-
-    /**
-     * @return string
-     */
-    public function getImage(): string
-    {
-        return $this->image;
-    }
-
-    /**
-     * @param string $image
-     */
-    public function setImage(string $image): void
-    {
-        $this->image = $image;
-    }
-
-    /**
-     * @return Build
-     */
-    public function getBuild(): Build
-    {
-        return $this->build;
-    }
-
-    /**
-     * @param Build $build
-     */
-    public function setBuild(Build $build): void
-    {
-        $this->build = $build;
-    }
-
-    /**
-     * @return Port[]
-     */
-    public function getPorts(): array
-    {
-        return $this->ports;
-    }
-
-    /**
-     * @param Port[] $ports
-     */
-    public function setPorts(array $ports): void
-    {
-        $this->ports = $ports;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getNetworks()
-    {
-        return $this->networks;
-    }
-
-    /**
-     * @param mixed $networks
-     */
-    public function setNetworks($networks): void
-    {
-        $this->networks = $networks;
-    }
-
-    /**
-     * @return Args
-     */
-    public function getDependsOn(): Args
-    {
-        return $this->dependsOn;
-    }
-
-    /**
-     * @param Args $dependsOn
-     */
-    public function setDependsOn(Args $dependsOn): void
-    {
-        $this->dependsOn = $dependsOn;
-    }
-
-    /**
-     * @return Volume[]
-     */
-    public function getVolumes(): array
-    {
-        return $this->volumes;
-    }
-
-    /**
-     * @param Volume[] $volumes
-     */
-    public function setVolumes(array $volumes): void
-    {
-        $this->volumes = $volumes;
-    }
-
-    /**
-     * @return string
-     */
-    public function getContainerName(): string
-    {
-        return $this->containerName;
-    }
-
-    /**
-     * @param string $containerName
-     */
-    public function setContainerName(string $containerName): void
+    public function setContainerName(?string $containerName)
     {
         $this->containerName = $containerName;
     }
 
     /**
-     * @return Args|string
+     * @param Port $port
      */
-    public function getDns()
+    public function addPort(Port $port)
     {
-        return $this->dns;
+        $this->ports[] = $port;
     }
 
     /**
-     * @param Args|string $dns
+     * @param Volume $volume
      */
-    public function setDns($dns): void
+    public function addVolume(Volume $volume)
     {
-        $this->dns = $dns;
+        $this->volumes[] = $volume;
+    }
+
+    /**
+     * @param string $network
+     */
+    public function addNetwork(string $network)
+    {
+        $this->networks[] = $network;
+    }
+
+    /**
+     * @param string $dependsOn
+     */
+    public function addDependsOn(string $dependsOn)
+    {
+        $this->dependsOn[] = $dependsOn;
+    }
+
+    /**
+     * @param string $dns
+     */
+    public function addDns(string $dns)
+    {
+        $this->dns[] = $dns;
+    }
+
+    /**
+     * @return array
+     */
+    public function toArray(): array
+    {
+        $data = [];
+        if ($this->containerName !== null) {
+            $data['container_name'] = $this->containerName;
+        }
+        if (!empty($this->ports)) {
+            $ports = [];
+            foreach ($this->ports as $port) {
+                $ports[] = $port->__toString();
+            }
+            $data['ports'] = $ports;
+        }
+        if (!empty($this->networks)) {
+            $data['networks'] = $this->networks;
+        }
+        if (!empty($this->dependsOn)) {
+            $data['depends_on'] = $this->dependsOn;
+        }
+        if (!empty($this->volumes)) {
+            $volumes = [];
+            foreach ($this->volumes as $volume) {
+                $volumes[] = $volume->__toString();
+            }
+            $data['volumes'] = $volumes;
+        }
+        if (!empty($this->dns)) {
+            $data['dns'] = $this->dns;
+        }
+
+        return $data;
     }
 }
