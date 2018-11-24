@@ -15,7 +15,7 @@ trait PackagesTrait
     public function requirePackages(array $packages): void
     {
         foreach ($packages as $package) {
-            if (in_array($package, $this->packages)) {
+            if (!in_array($package, $this->packages)) {
                 $this->packages[] = $package;
             }
         }
