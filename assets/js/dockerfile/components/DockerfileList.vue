@@ -3,13 +3,24 @@
         <md-table>
             <md-table-row>
                 <md-table-head>Name</md-table-head>
+                <md-table-head>Base Image</md-table-head>
                 <md-table-head>Description</md-table-head>
             </md-table-row>
-            <md-table-row :key="file.name" v-for="file in files">
+            <md-table-row :key="file.name" v-for="file in files" v-show="!file.removed">
                 <md-table-cell>{{ file.name }}</md-table-cell>
+                <md-table-cell>{{ file.baseImage }}</md-table-cell>
                 <md-table-cell>{{ file.description }}</md-table-cell>
+                <md-table-cell>
+                    <md-button class="md-icon-button" :href="viewUrl(file)">
+                        <md-icon>edit</md-icon>
+                    </md-button>
+                    <md-button class="md-icon-button" @click="remove(file)">
+                        <md-icon>delete</md-icon>
+                    </md-button>
+                </md-table-cell>
             </md-table-row>
         </md-table>
+        <div v-show="loading">Loading list...</div>
         <md-speed-dial class="md-bottom-right" v-if="!newRow">
             <md-speed-dial-target @click="addNewRow">
                 <md-icon>add</md-icon>
@@ -22,6 +33,15 @@
                     <label>Name</label>
                     <md-input v-model="newRow.name"></md-input>
                 </md-field>
+                <md-autocomplete v-model="newRow.baseImage" :md-options="images">
+                    <label>Base image</label>
+                    <template slot="md-autocomplete-item" slot-scope="{ item, term }">
+                        <md-highlight-text :md-term="term">{{ item }}</md-highlight-text>
+                    </template>
+                    <template slot="md-autocomplete-empty" slot-scope="{ term }">
+                        No images "{{ term }}" were found.
+                    </template>
+                </md-autocomplete>
                 <md-field>
                     <label>Description</label>
                     <md-textarea v-model="newRow.description"></md-textarea>
@@ -36,29 +56,63 @@
 </template>
 
 <script>
+    import Api from '../../api/dockerfile';
+    import _ from 'lodash';
+
     export default {
+        name: 'd-dockerfile-list',
+        props: {
+            images: Array
+        },
         data() {
             return {
+                loading: true,
                 newRow: null,
-                files: [
-                    {name: 'test1', description: 'Lipsum dolor.'},
-                    {name: 'test2', description: 'Sit amet.'}
-                ]
+                files: []
             }
+        },
+        created() {
+            Api.list().then((data) => {
+                _.each(data, (dockerfile) => {
+                    dockerfile.removed = false;
+                    this.files.push(dockerfile);
+                });
+            }).finally(() => {
+                this.loading = false;
+            })
         },
         methods: {
             addNewRow() {
                 this.newRow = {
                     name: null,
-                    description: null
+                    description: null,
+                    baseImage: null
                 }
             },
             cancelNewRow() {
                 this.newRow = null;
             },
             save() {
-                this.files.push(this.newRow);
-                this.cancelNewRow();
+                Api.create(this.newRow.name, this.newRow.baseImage, this.newRow.description).then((data) => {
+                    this.files.push(data.data);
+                    window.location = Api.viewUrl(data.data.id);
+                }).catch(() => {
+                    this.cancelNewRow();
+                });
+            },
+            remove(dockerfile) {
+                dockerfile.removed = true;
+                Api.remove(dockerfile.id).then(() => {
+                    const index = this.files.indexOf(dockerfile);
+                    if (index !== -1) {
+                        this.files.splice(index, 1);
+                    }
+                }).catch(() => {
+                    dockerfile.removed = false;
+                })
+            },
+            viewUrl(dockerfile) {
+                return Api.viewUrl(dockerfile.id);
             }
         },
         computed: {

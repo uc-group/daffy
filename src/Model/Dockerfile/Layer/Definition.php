@@ -50,4 +50,15 @@ class Definition
     {
         return $this->arguments[$name] ?? $default;
     }
+
+    /**
+     * @return array
+     */
+    public function toArray()
+    {
+        return [
+            'type' => $this->type,
+            'args' => $this->arguments
+        ];
+    }
 }

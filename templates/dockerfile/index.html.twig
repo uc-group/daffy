@@ -3,7 +3,7 @@
 {% block body %}
     <div>
         <span class="md-headline">Dockerfile</span>
-        <d-dockerfile-list>
+        <d-dockerfile-list :images="{{ images|json_encode|e('html_attr') }}">
         </d-dockerfile-list>
     </div>
 {% endblock %}

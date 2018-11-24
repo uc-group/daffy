@@ -8,7 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="App\Repository\OperatingSystemRepository")
  */
 class OperatingSystem implements \JsonSerializable
 {
@@ -26,6 +26,12 @@ class OperatingSystem implements \JsonSerializable
     private $description;
 
     /**
+     * @var string
+     * @ORM\Column(type="string")
+     */
+    private $packageManager;
+
+    /**
      * @var Collection|ImageConfig[]
      * @ORM\OneToMany(targetEntity="ImageConfig", mappedBy="operatingSystem")
      */
@@ -34,12 +40,14 @@ class OperatingSystem implements \JsonSerializable
     /**
      * OperatingSystem constructor.
      * @param Id $id
+     * @param string $packageManager
      * @param string|null $description
      */
-    public function __construct(Id $id, string $description = null)
+    public function __construct(Id $id, string $packageManager, string $description = null)
     {
         $this->id = $id->toString();
         $this->description = $description;
+        $this->packageManager = $packageManager;
         $this->imageConfigs = new ArrayCollection();
     }
 
@@ -54,6 +62,23 @@ class OperatingSystem implements \JsonSerializable
     /**
      * @return string
      */
+    public function getPackageManager(): string
+    {
+        return $this->packageManager;
+    }
+
+    /**
+     * @param string $packageManager
+     */
+    public function setPackageManager(string $packageManager): void
+    {
+        $this->packageManager = $packageManager;
+    }
+
+
+    /**
+     * @return string
+     */
     public function getDescription(): string
     {
         return $this->description;
@@ -62,7 +87,7 @@ class OperatingSystem implements \JsonSerializable
     /**
      * @param string $description
      */
-    public function setDescription(string $description): void
+    public function setDescription(?string $description): void
     {
         $this->description = $description;
     }
@@ -122,6 +147,7 @@ class OperatingSystem implements \JsonSerializable
     {
         return [
             'id' => $this->id,
+            'packageManager' => $this->packageManager,
             'description' => $this->description,
             'images' => $this->getImages()
         ];

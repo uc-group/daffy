@@ -31,14 +31,14 @@ export default {
         return new Promise((resolve, reject) => {
             axios.post(Routing.generate(route, params), data)
                 .then((response) => {
-                    if (response.data.hasOwnProperty('status')) {
-                        handleResponse(resolve, reject, response);
-                    }
-
+                    handleResponse(resolve, reject, response);
                 })
                 .catch((error) => {
                     reject(error);
                 })
         });
+    },
+    route(name, params) {
+        return Routing.generate(name, params);
     }
 }
