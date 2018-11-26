@@ -3,28 +3,28 @@
         <md-field>
             <label>Instruction</label>
             <md-select v-model="instruction">
-                <md-option value="add">ADD</md-option>
-                <md-option value="run">RUN</md-option>
+                <md-option :value="key" :key="key" v-for="(label, key) in labels">{{  label }}</md-option>
             </md-select>
         </md-field>
-        <component :is="argComponent" v-model="args"></component>
+        <component :is="argComponent" v-model="args" v-bind="config.props || false" v-if="config"></component>
     </div>
 </template>
 
 <script>
-    import SourceDestination from '../instructions/SourceDestination';
-    import Commands from '../instructions/Commands';
-
-    const instructionArguments = {
-        add: SourceDestination,
-        run: Commands,
-    };
+    import _ from 'lodash';
+    import instructionConfig from '../../instruction-config';
 
     export default {
         props: ['value'],
         computed: {
+            labels() {
+                return _.mapValues(instructionConfig, 'label');
+            },
+            config() {
+                return instructionConfig[this.instruction] || null;
+            },
             argComponent() {
-                return instructionArguments[this.instruction] || false;
+                return this.config.component || null;
             },
             instruction: {
                 get() {
@@ -38,9 +38,25 @@
             },
             args: {
                 get() {
+                    if (!this.config) {
+                        return null;
+                    }
+
+                    if (this.config.hasOwnProperty('transformer')) {
+                        return this.config.transformer.from(this.value);
+                    }
+
                     return this.value;
                 },
                 set(value) {
+                    if (!this.config) {
+                        return null;
+                    }
+
+                    if (this.config.hasOwnProperty('transformer')) {
+                        value = this.config.transformer.to(value);
+                    }
+
                     value.instruction = this.instruction;
                     this.$emit('input', value);
                 }

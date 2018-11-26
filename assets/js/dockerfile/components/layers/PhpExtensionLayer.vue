@@ -1,5 +1,6 @@
 <template>
     <div>
+
         <md-checkbox :key="extension" v-for="extension in availableExtensions"
                      v-model="extensions" :value="extension">{{ extension }}</md-checkbox>
     </div>

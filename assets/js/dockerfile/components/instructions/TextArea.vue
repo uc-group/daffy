@@ -3,7 +3,7 @@
         <div class="md-layout-item">
             <md-field>
                 <label>Source</label>
-                <md-textarea v-model="commands"></md-textarea>
+                <md-textarea v-model="localValue"></md-textarea>
             </md-field>
         </div>
     </div>
@@ -11,16 +11,16 @@
 
 <script>
     export default {
-        props: ['value'],
+        props: ['value', 'propertyName'],
         computed: {
-            commands: {
+            localValue: {
                 get() {
-                    return this.value.commands
+                    return this.value[this.propertyName]
                 },
                 set(value) {
-                    this.$emit('input', {
-                        commands: value
-                    })
+                    let obj = {};
+                    obj[this.propertyName] = value;
+                    this.$emit('input', obj)
                 }
             }
         }
