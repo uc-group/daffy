@@ -2,6 +2,8 @@
 
 namespace App\Model\DockerCompose;
 
+use Symfony\Component\Yaml\Yaml;
+
 class BaseFile
 {
     /**
@@ -15,34 +17,34 @@ class BaseFile
     private $services;
 
     /**
-     * @return string
-     */
-    public function getVersion(): string
-    {
-        return $this->version;
-    }
-
-    /**
+     * BaseFile constructor.
      * @param string $version
      */
-    public function setVersion(string $version): void
+    public function __construct(string $version)
     {
         $this->version = $version;
     }
 
     /**
-     * @return Service[]
+     * @param Service $service
      */
-    public function getServices(): array
+    public function addService(Service $service)
     {
-        return $this->services;
+        $this->services[] = $service;
     }
 
     /**
-     * @param Service[] $services
+     * @return string
      */
-    public function setServices(array $services): void
+    public function toYaml(): string
     {
-        $this->services = $services;
+        $dockerComposeFile = [];
+        foreach ($this->services as $service) {
+            $dockerComposeFile[$service->getName()] = $service->toArray();
+        }
+
+        $versionPart = Yaml::dump(['version' => sprintf('%s', $this->version)], 2, 2);
+
+        return $versionPart . PHP_EOL . Yaml::dump($dockerComposeFile, 4, 2);
     }
 }
