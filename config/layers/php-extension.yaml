@@ -1,0 +1,12 @@
+os_packages:
+    ubuntu:
+        _default:
+            mcrypt: [libmcrypt-dev]
+            zmq: [libzmq3-dev]
+            gd: [libfreetype6-dev, libjpeg62-turbo-dev, libpng-dev]
+
+pecl_packages:
+    ubuntu:
+        _default:
+            xdebug: xdebug-2.5.0
+            zmq: zmq-beta

@@ -12,7 +12,7 @@ class InflectorTest extends TestCase
      */
     public function replacesMultipleSpacesToSingleHyphen()
     {
-        $this->assertEquals('this_is_test', Inflector::toNormalizedHyphenCase('this       is   test'));
+        $this->assertEquals('this_is_test', Inflector::toNormalizedUnderscoreCase('this       is   test'));
     }
 
     /**
@@ -20,7 +20,7 @@ class InflectorTest extends TestCase
      */
     public function replacesDotsWithHyphen()
     {
-        $this->assertEquals('this_is_test', Inflector::toNormalizedHyphenCase('this...is..test'));
+        $this->assertEquals('this_is_test', Inflector::toNormalizedUnderscoreCase('this...is..test'));
     }
 
     /**
@@ -28,7 +28,7 @@ class InflectorTest extends TestCase
      */
     public function convertsToLowerCase()
     {
-        $this->assertEquals('this_is_test', Inflector::toNormalizedHyphenCase('This...IS tESt'));
+        $this->assertEquals('this_is_test', Inflector::toNormalizedUnderscoreCase('This...IS tESt'));
     }
 
     /**
@@ -36,6 +36,6 @@ class InflectorTest extends TestCase
      */
     public function removesNonStandardCharacters()
     {
-        $this->assertEquals('this_is_test', Inflector::toNormalizedHyphenCase('Thisśąśðœ²³©æ„śąð is (*&^$%#$&%*()_ test'));
+        $this->assertEquals('this_is_test', Inflector::toNormalizedUnderscoreCase('Thisśąśðœ²³©æ„śąð is (*&^$%#$&%*()_ test'));
     }
 }
