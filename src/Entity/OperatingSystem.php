@@ -21,6 +21,18 @@ class OperatingSystem implements \JsonSerializable
 
     /**
      * @var string
+     * @ORM\Column(type="string", length=120)
+     */
+    private $name;
+
+    /**
+     * @var string
+     * @ORM\Column(type="string", length=80)
+     */
+    private $version;
+
+    /**
+     * @var string
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $description;
@@ -39,15 +51,18 @@ class OperatingSystem implements \JsonSerializable
 
     /**
      * OperatingSystem constructor.
-     * @param Id $id
+     * @param string $name
+     * @param string $version
      * @param string $packageManager
      * @param string|null $description
      */
-    public function __construct(Id $id, string $packageManager, string $description = null)
+    public function __construct(string $name, string $version, string $packageManager, string $description = null)
     {
-        $this->id = $id->toString();
+        $this->id = Id::fromNameAndVersion($name, $version)->toString();
         $this->description = $description;
         $this->packageManager = $packageManager;
+        $this->name = $name;
+        $this->version = $version;
         $this->imageConfigs = new ArrayCollection();
     }
 
@@ -138,6 +153,22 @@ class OperatingSystem implements \JsonSerializable
         }
 
         return $images;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVersion(): string
+    {
+        return $this->version;
     }
 
     /**

@@ -45,7 +45,13 @@ class OperatingSystemManager
             throw new EntityAlreadyExistsException($id->toString());
         }
 
-        $operatingSystem = new OperatingSystem($id, $request->getPackageManager(), $request->getDescription());
+        $operatingSystem = new OperatingSystem(
+            $request->getName(),
+            $request->getVersion(),
+            $request->getPackageManager(),
+            $request->getDescription()
+        );
+
         foreach ($this->findImageConfigs($request->getImages()) as $config) {
             $operatingSystem->addImageConfig($config);
         }
