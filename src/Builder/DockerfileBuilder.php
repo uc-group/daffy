@@ -12,6 +12,8 @@ use App\Model\Dockerfile\Layer\InstructionLayer;
 use App\Model\Dockerfile\Layer\LayerInterface;
 use App\Model\Dockerfile\Layer\OperatingSystemAwareInterface;
 use App\Model\Dockerfile\Layer\PhpExtensionLayer;
+use App\Model\Dockerfile\LayerBuilder\LayerBuilderInterface;
+use App\Model\Dockerfile\LayerBuilder\LayerBuilderRegistry;
 use App\Model\Dockerfile\PackageManager\PackageManagerInterface;
 use App\Model\Dockerfile\PackageManager\PackageManagerRegistry;
 use App\Repository\OperatingSystemRepository;
@@ -19,6 +21,14 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DockerfileBuilder
 {
+    /**
+     * @var string[]
+     */
+    private static $LAYER_MAP = [
+        'instruction' => InstructionLayer::class,
+        'php-extension' => PhpExtensionLayer::class
+    ];
+
     /**
      * @var PackageManagerRegistry
      */
@@ -30,22 +40,24 @@ class DockerfileBuilder
     private $entityManager;
 
     /**
-     * @var string[]
+     * @var LayerBuilderRegistry
      */
-    private static $LAYER_MAP = [
-        'instruction' => InstructionLayer::class,
-        'php-extension' => PhpExtensionLayer::class
-    ];
+    private $layerBuilderRegistry;
 
     /**
      * DockerfileBuilder constructor.
      * @param PackageManagerRegistry $packageManagerRegistry
+     * @param LayerBuilderRegistry $layerBuilderRegistry
      * @param EntityManagerInterface $entityManager
      */
-    public function __construct(PackageManagerRegistry $packageManagerRegistry, EntityManagerInterface $entityManager)
-    {
+    public function __construct(
+        PackageManagerRegistry $packageManagerRegistry,
+        LayerBuilderRegistry $layerBuilderRegistry,
+        EntityManagerInterface $entityManager
+    ) {
         $this->packageManagerRegistry = $packageManagerRegistry;
         $this->entityManager = $entityManager;
+        $this->layerBuilderRegistry = $layerBuilderRegistry;
     }
 
     /**
@@ -62,15 +74,19 @@ class DockerfileBuilder
 
         $layers = [];
         foreach ($config->getLayersDefinition() as $definition) {
+            $layerBuilder = $this->layerBuilderRegistry->getBuilder($definition);
+            if (!$layerBuilder instanceof LayerBuilderInterface) {
+                continue;
+            }
 
             try {
-                $layer = $this->buildLayer($definition, $operatingSystem);
+                $layer = $layerBuilder->build($definition, $operatingSystem);
             } catch (CannotCreateLayerException $exception) {
                 continue;
             }
 
             if ($layer instanceof OperatingSystemAwareInterface) {
-                $packageManager->requirePackages($layer->getPackages($operatingSystem));
+                $packageManager->requirePackages($layer->getPackages());
             }
 
             $layers[] = $layer;
@@ -122,18 +138,18 @@ class DockerfileBuilder
      * @param Definition $definition
      * @param OperatingSystem $operatingSystem
      * @return LayerInterface
-     * @throws \Exception
+     * @throws CannotCreateLayerException
      */
     private function buildLayer(Definition $definition, OperatingSystem $operatingSystem) {
         if (!key_exists($definition->getType(), self::$LAYER_MAP)) {
-            throw new \Exception(sprintf('Unknown layer type "%s"', $definition->getType()));
+            throw new CannotCreateLayerException(sprintf('Unknown layer type "%s"', $definition->getType()));
         }
 
         $layer = call_user_func([self::$LAYER_MAP[$definition->getType()], 'create'], $definition);
 
         if ($layer instanceof OperatingSystemAwareInterface) {
             if (!$layer->supports($operatingSystem)) {
-                throw new \Exception(sprintf(
+                throw new CannotCreateLayerException(sprintf(
                     'Layer "%s" is not supported by "%s" operating system.',
                     get_class($layer),
                     $operatingSystem->getId()->toString()

@@ -17,10 +17,7 @@ class PackageManagerRegistry extends ServiceLocator
     public function __construct(array $factories)
     {
         parent::__construct($factories);
-
-        foreach (array_keys($factories) as $identifier) {
-            $this->identifiers[] = $identifier;
-        }
+        $this->identifiers[] = array_keys($factories);
     }
 
     /**

@@ -12,10 +12,4 @@ interface LayerInterface
      * @return InstructionInterface[]
      */
     public function getInstructions(): array;
-
-    /**
-     * @param Definition $definition
-     * @return LayerInterface
-     */
-    public static function create(Definition $definition): LayerInterface;
 }
