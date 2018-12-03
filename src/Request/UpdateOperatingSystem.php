@@ -19,6 +19,7 @@ class UpdateOperatingSystem extends PostOperatingSystem
         $content = json_decode($request->getContent(), true);
 
         return new self(
+            $content['packageManager'] ?? '',
             $content['description'] ?? null,
             $content['images'] ?? null
         );

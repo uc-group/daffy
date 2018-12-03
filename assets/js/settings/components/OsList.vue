@@ -27,17 +27,32 @@
                             </div>
                         </div>
                         <div v-else class="md-layout md-gutter">
-                            <md-field>
-                                <label>ID</label>
-                                <md-input :disabled="true" v-model="currentRow.id" />
-                            </md-field>
+                            <div class="md-layout-item">
+                                <md-field>
+                                    <label>ID</label>
+                                    <md-input :disabled="true" v-model="currentRow.id" />
+                                </md-field>
+                            </div>
                         </div>
                         <div class="md-layout md-gutter">
-                            <md-field :class="{'md-invalid': errors.description}">
-                                <label>Description</label>
-                                <md-textarea v-model="currentRow.description"></md-textarea>
-                                <span class="md-error" v-if="errors.description">{{ errors.description }}</span>
-                            </md-field>
+                            <div class="md-layout-item">
+                                <md-field :class="{'md-invalid': errors.packageManager}">
+                                    <label>Package Manager</label>
+                                    <md-select v-model="currentRow.packageManager">
+                                        <md-option :value="manager" :key="manager" v-for="manager in packageManagers">{{ manager }}</md-option>
+                                    </md-select>
+                                    <span class="md-error" v-if="errors.packageManager">{{ errors.packageManager }}</span>
+                                </md-field>
+                            </div>
+                        </div>
+                          <div class="md-layout md-gutter">
+                            <div class="md-layout-item">
+                                <md-field :class="{'md-invalid': errors.description}">
+                                    <label>Description</label>
+                                    <md-textarea v-model="currentRow.description"></md-textarea>
+                                    <span class="md-error" v-if="errors.description">{{ errors.description }}</span>
+                                </md-field>
+                            </div>
                         </div>
                         <md-chips v-model="currentRow.images" :md-check-duplicated="true">
                             <label>Images</label>
@@ -66,12 +81,16 @@
 
     export default {
         mixins: [validationMixin],
+        props: {
+            packageManagers: Array
+        },
         data() {
             return {
                 loading: true,
                 saving: false,
                 headers: [
                     {id: 'id', label: 'ID'},
+                    {id: 'packageManager', label: 'Package Manager'},
                     {id: 'description', label: 'Description'},
                     {id: 'images', label: 'Docker images'}
                 ],
@@ -102,6 +121,7 @@
             },
             closeDialog() {
                 this.currentRow = null;
+                this.errors = {};
             },
             isValidForm() {
                 this.$v.$touch();
@@ -133,6 +153,7 @@
                 Api.create(
                     this.currentRow.name,
                     this.currentRow.version,
+                    this.currentRow.packageManager,
                     _.trim(`${this.currentRow.name} ${this.currentRow.version}. ${this.currentRow.description || ''}`),
                     this.currentRow.images
                 ).then((response) => {
@@ -148,7 +169,12 @@
             },
             updateOs() {
                 this.saving = true;
-                Api.update(this.currentRow.id, this.currentRow.description, this.currentRow.images).then((response) => {
+                Api.update(
+                    this.currentRow.id,
+                    this.currentRow.packageManager,
+                    this.currentRow.description,
+                    this.currentRow.images
+                ).then((response) => {
                     const index = _.findIndex(this.osList, {id: this.currentRow.id});
                     this.osList.splice(index, 1, response.data);
                     this.closeDialog();

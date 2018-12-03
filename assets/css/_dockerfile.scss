@@ -1,0 +1,26 @@
+.dockerfile {
+    &__details {
+        border: 1px solid rgba(#000, .12);
+        max-width: 400px;
+    }
+
+    &__preview {
+        .md-list-item-container {
+            font-size: 11px;
+        }
+    }
+
+    &__layers {
+        padding: 20px;
+    }
+}
+
+.dockerfile-layer {
+    & + & {
+        margin-top: 20px;
+    }
+}
+
+.sortable-chosen {
+    outline: 2px solid var(--md-theme-default-accent);
+}

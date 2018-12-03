@@ -21,10 +21,18 @@ class CreateOperatingSystem extends PostOperatingSystem
      * CreateOperatingSystem constructor.
      * @param string $name
      * @param string $version
+     * @param string $packageManager
+     * @param string|null $description
+     * @param array $images
      */
-    protected function __construct(string $name, string $version, string $description = null, array $images)
+    protected function __construct(
+        string $name,
+        string $version,
+        string $packageManager,
+        string $description = null,
+        array $images)
     {
-        parent::__construct($description, $images);
+        parent::__construct($packageManager, $description, $images);
         $this->name = $name;
         $this->version = $version;
     }
@@ -40,6 +48,7 @@ class CreateOperatingSystem extends PostOperatingSystem
         return new self(
             $content['name'] ?? '',
             $content['version'] ?? '',
+            $content['packageManager'] ?? '',
             $content['description'] ?? null,
             $content['images'] ?? []
         );

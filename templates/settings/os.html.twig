@@ -3,7 +3,7 @@
 {% block body %}
     <div>
         <span class="md-headline">Operating systems</span>
-        <d-os-list>
+        <d-os-list :package-managers="{{ packageManagers|json_encode|e('html_attr') }}">
         </d-os-list>
     </div>
 {% endblock %}

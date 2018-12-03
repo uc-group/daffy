@@ -4,6 +4,7 @@ namespace App\Request;
 
 use App\Exception\InvalidNameException;
 use App\Model\Dockerfile\Image;
+use Symfony\Component\Validator\Constraints as Assert;
 
 abstract class PostOperatingSystem
 {
@@ -13,16 +14,23 @@ abstract class PostOperatingSystem
     private $description;
 
     /**
+     * @var string
+     */
+    private $packageManager;
+
+    /**
      * @var Image[]
      */
     private $images;
 
     /**
+     * @param string $packageManager
      * @param string|null $description
      * @param string[] $images
      */
-    protected function __construct(string $description = null, array $images = [])
+    protected function __construct(string $packageManager, string $description = null, array $images = [])
     {
+        $this->packageManager = $packageManager;
         $this->description = $description;
         $this->images = [];
 
@@ -39,7 +47,7 @@ abstract class PostOperatingSystem
     /**
      * @return string
      */
-    public function getDescription(): string
+    public function getDescription(): ?string
     {
         return $this->description;
     }
@@ -50,5 +58,15 @@ abstract class PostOperatingSystem
     public function getImages(): array
     {
         return $this->images;
+    }
+
+    /**
+     * @return string
+     * @Assert\NotBlank()
+     * @Assert\NotNull()
+     */
+    public function getPackageManager(): string
+    {
+        return $this->packageManager;
     }
 }
