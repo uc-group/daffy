@@ -8,7 +8,7 @@ class Inflector
      * @param string $name
      * @return string
      */
-    public static function toNormalizedHyphenCase(string $name): string
+    public static function toNormalizedUnderscoreCase(string $name): string
     {
         return preg_replace(
             ['/[^a-z0-9_\s\.]/', '/\s+|\.+/', '/_+/'],

@@ -8,82 +8,88 @@ use App\Model\Dockerfile\Instruction;
 
 class PhpExtensionLayer implements LayerInterface, OperatingSystemAwareInterface
 {
-    private static $PACKAGES = [
-        'mcrypt' => ['libmcrypt-dev'],
-        'zmq' => ['libzmq3-dev'],
-        'gd' => ['libfreetype6-dev', 'libjpeg62-turbo-dev', 'libpng-dev gnupg']
-    ];
+    /**
+     * @var string[]
+     */
+    private $extensions;
 
-    private static $INSTALL_BY_PECL = [
-        'xdebug' => 'xdebug-2.5.0',
-        'zmq' => 'zmq-beta'
-    ];
+    /**
+     * @var string[]
+     */
+    private $peclPackages;
+    /**
+     * @var string[]
+     */
+    private $osPackages;
 
-    private $extensions = [];
+    /**
+     * @var array
+     */
+    private $files = [];
+
+    /**
+     * PhpExtensionLayer constructor.
+     * @param array $extensions
+     * @param array $peclPackages
+     * @param array $osPackages
+     */
+    public function __construct(array $extensions, array $peclPackages, array $osPackages)
+    {
+        $this->extensions = $extensions;
+        $this->peclPackages = $peclPackages;
+        $this->osPackages = $osPackages;
+    }
+
+    /**
+     * @param string $name
+     * @param string $destination
+     * @param string $content
+     */
+    public function addFile(string $name, string $destination, string $content)
+    {
+        $this->files[] = [
+            'source' => sprintf('./config/php/%s', $name),
+            'destination' => $destination,
+            'content' => $content
+        ];
+    }
 
     /**
      * @return Instruction[]
      */
     public function getInstructions(): array
     {
+        if (empty($this->extensions)) {
+            return [];
+        }
+
         $peclCmd = $this->getPeclInstallCommands();
         $enableCmd = $this->getEnableCommands();
         $instructions = [
             Instruction::run(...$peclCmd, ...$enableCmd)
         ];
 
-        if (in_array('xdebug', $this->extensions)) {
-            $instructions[] = Instruction::copy('./config/xdebug.ini', '/usr/local/etc/php/xdebug.ini');
+        foreach ($this->files as $file) {
+            $instructions[] = Instruction::copy($file['source'], $file['destination']);
         }
 
         return $instructions;
     }
 
     /**
-     * @param Definition $definition
-     * @return LayerInterface
-     * @throws CannotCreateLayerException
+     * @return array
      */
-    public static function create(Definition $definition): LayerInterface
+    public function getPackages(): array
     {
-        $extensions = $definition->getArgument('extensions', false);
-        if (!$extensions || empty($extensions)) {
-            throw new CannotCreateLayerException('No extensions selected.');
-        }
-
-        $layer = new self();
-        $layer->extensions = $extensions;
-
-        return $layer;
-    }
-
-    public function supports(OperatingSystem $operatingSystem): bool
-    {
-        return preg_match('/^ubuntu-/', $operatingSystem->getId()->toString()) === 1;
+        return $this->osPackages;
     }
 
     /**
-     * @param OperatingSystem $operatingSystem
      * @return array
      */
-    public function getPackages(OperatingSystem $operatingSystem): array
+    public function getConfigFiles(): array
     {
-        $packages = [];
-        foreach ($this->extensions as $extension) {
-            if (key_exists($extension, self::$PACKAGES)) {
-                foreach (self::$PACKAGES[$extension] as $package) {
-                    $packages[] = $package;
-                }
-            }
-        }
-
-        return array_unique($packages);
-    }
-
-    public function getConfigFiles(OperatingSystem $operatingSystem): array
-    {
-        // TODO: Implement getConfigFiles() method.
-        return [];
+        return $this->files;
     }
 
     /**
@@ -92,10 +98,8 @@ class PhpExtensionLayer implements LayerInterface, OperatingSystemAwareInterface
     private function getPeclInstallCommands()
     {
         $cmd = [];
-        foreach ($this->extensions as $extension) {
-            if (key_exists($extension, self::$INSTALL_BY_PECL)) {
-                $cmd[] = sprintf('pecl install %s', self::$INSTALL_BY_PECL[$extension]);
-            }
+        foreach ($this->peclPackages as $package) {
+            $cmd[] = sprintf('pecl install %s', $package);
         }
 
         return $cmd;
