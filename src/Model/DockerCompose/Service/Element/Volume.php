@@ -2,7 +2,7 @@
 
 namespace App\Model\DockerCompose\Service\Element;
 
-class Volume implements ServiceElementInterface
+class Volume
 {
     /**
      * @var string

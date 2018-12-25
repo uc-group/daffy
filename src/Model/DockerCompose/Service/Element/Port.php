@@ -2,7 +2,7 @@
 
 namespace App\Model\DockerCompose\Service\Element;
 
-class Port implements ServiceElementInterface
+class Port
 {
     /**
      * @var string
