@@ -1,13 +1,16 @@
 import Vue from 'vue';
+import store from './store';
 import './md';
 import '../css/app.scss';
 import './icons';
 import './components';
 import './dockerfile';
+import './dockercompose';
 import './settings';
 
 new Vue({
     el: '#app',
+    store,
     data() {
         return {
             menuVisible: false,
