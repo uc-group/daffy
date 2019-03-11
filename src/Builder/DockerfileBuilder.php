@@ -16,6 +16,8 @@ use App\Model\Dockerfile\LayerBuilder\LayerBuilderInterface;
 use App\Model\Dockerfile\LayerBuilder\LayerBuilderRegistry;
 use App\Model\Dockerfile\PackageManager\PackageManagerInterface;
 use App\Model\Dockerfile\PackageManager\PackageManagerRegistry;
+use App\Model\Dockerfile\Stage\Stage;
+use App\Model\Dockerfile\Stage\StageId;
 use App\Repository\OperatingSystemRepository;
 use Doctrine\ORM\EntityManagerInterface;
 

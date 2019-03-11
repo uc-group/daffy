@@ -2,12 +2,20 @@
 
 namespace App\Model\Dockerfile;
 
+use App\Model\Dockerfile\Stage\ImageId;
+use App\Model\Dockerfile\Stage\Stage;
+
 class Dockerfile
 {
     /**
-     * @var Instruction[]
+     * @var string
      */
-    private $instructions = [];
+    private $firstStage;
+
+    /**
+     * @var Stage[]
+     */
+    private $stages = [];
 
     /**
      * Dockerfile constructor.
@@ -16,24 +24,38 @@ class Dockerfile
      */
     public function __construct(Image $baseImage, string $baseImageAlias = null)
     {
-        $this->addInstruction(Instruction::from($baseImage, $baseImageAlias));
-        $this->addEmptyLine();
+        if ($baseImageAlias === null) {
+            $baseImageAlias = '0';
+        }
+
+        $this->firstStage = $baseImageAlias;
+        $this->stages[$baseImageAlias] = new Stage(new ImageId($baseImage, $baseImageAlias));
     }
 
     /**
      * @param InstructionInterface $instruction
+     * @param string|null $stageAlias
      */
-    public function addInstruction(InstructionInterface $instruction): void
+    public function addInstruction(InstructionInterface $instruction, string $stageAlias = null): void
     {
-        $this->instructions[] = $instruction;
+        $this->getStage($stageAlias)->addInstruction($instruction);
     }
 
     /**
      * Adds empty line
+     * @param string|null $stageAlias
      */
-    public function addEmptyLine(): void
+    public function addEmptyLine(string $stageAlias = null): void
     {
-        $this->instructions[] = Instruction::emptyLine();
+        $this->getStage($stageAlias)->addInstruction(Instruction::emptyLine());
+    }
+
+    /**
+     * @param Stage $stage
+     */
+    public function addStage(Stage $stage): void
+    {
+        $this->stages[$stage->getAlias()] = $stage;
     }
 
     /**
@@ -42,10 +64,27 @@ class Dockerfile
     public function __toString(): string
     {
         $dockerfile = '';
-        foreach ($this->instructions as $i => $instruction) {
-            $dockerfile .= sprintf("%s\n", $instruction);
+        foreach ($this->stages as $stage) {
+
+            foreach ($stage->toInstructionList() as $i => $instruction) {
+                $dockerfile .= sprintf("%s\n", $instruction);
+            }
         }
 
         return $dockerfile;
+    }
+
+    /**
+     * @param string|null $stageAlias
+     * @return Stage
+     */
+    public function getStage(string $stageAlias = null): Stage
+    {
+        if ($stageAlias === null) {
+            return $this->stages[$this->firstStage];
+        } else {
+            //TODO: throw stage not found exception
+            return $this->stages[$stageAlias];
+        }
     }
 }

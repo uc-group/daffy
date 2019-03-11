@@ -129,7 +129,23 @@ class Instruction implements InstructionInterface
     public static function from(Image $image, string $alias = null)
     {
         $args = [(string)$image];
-        if ($alias) {
+        if ($alias && !is_numeric($alias)) {
+            $args[] = 'AS';
+            $args[] = $alias;
+        }
+
+        return new self(self::FROM, $args);
+    }
+
+    /**
+     * @param string $name
+     * @param string|null $alias
+     * @return Instruction
+     */
+    public static function fromCustom(string $name, string $alias = null)
+    {
+        $args = [$name];
+        if ($alias && !is_numeric($alias)) {
             $args[] = 'AS';
             $args[] = $alias;
         }
