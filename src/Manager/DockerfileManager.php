@@ -47,7 +47,8 @@ class DockerfileManager
      */
     public function create(CreateDockerfileConfig $request)
     {
-        $entity = new DockerfileConfig($request->getBaseImage(), $request->getName(), $request->getDescription());
+        $entity = new DockerfileConfig($request->getBaseImage(), $request->getName(), $request->getAlias(),
+            $request->getDescription());
         $this->entityManager->persist($entity);
         $this->entityManager->flush();
 

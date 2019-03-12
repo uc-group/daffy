@@ -40,4 +40,12 @@ class StageId implements StageIdInterface
     {
         return $this->alias;
     }
+
+    /**
+     * @return Stage
+     */
+    public function getStage(): Stage
+    {
+        return $this->stage;
+    }
 }

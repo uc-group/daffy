@@ -5,8 +5,10 @@ namespace App\Builder;
 use App\Entity\DockerfileConfig;
 use App\Entity\OperatingSystem;
 use App\Exception\CannotCreateLayerException;
+use App\Exception\InvalidNameException;
 use App\Model\Dockerfile\Dockerfile;
 use App\Model\Dockerfile\Image;
+use App\Model\Dockerfile\Instruction;
 use App\Model\Dockerfile\Layer\Definition;
 use App\Model\Dockerfile\Layer\InstructionLayer;
 use App\Model\Dockerfile\Layer\LayerInterface;
@@ -16,6 +18,7 @@ use App\Model\Dockerfile\LayerBuilder\LayerBuilderInterface;
 use App\Model\Dockerfile\LayerBuilder\LayerBuilderRegistry;
 use App\Model\Dockerfile\PackageManager\PackageManagerInterface;
 use App\Model\Dockerfile\PackageManager\PackageManagerRegistry;
+use App\Model\Dockerfile\Stage\ImageId;
 use App\Model\Dockerfile\Stage\Stage;
 use App\Model\Dockerfile\Stage\StageId;
 use App\Repository\OperatingSystemRepository;
@@ -69,45 +72,88 @@ class DockerfileBuilder
      */
     public function build(DockerfileConfig $config): Dockerfile
     {
-        $dockerfile = new Dockerfile($config->getBaseImage());
+        $dockerfile = new Dockerfile();
 
-        $operatingSystem = $this->getOperatingSystem($config->getBaseImage());
-        $packageManager = $this->getPackageManager($operatingSystem);
+        $stages = $this->buildStages($config->getStages());
+        foreach ($stages as $stage) {
+            $dockerfile->addStage($stage);
+            $operatingSystem = $this->getOperatingSystem($stage->getBaseImage());
+            $packageManager = $this->getPackageManager($operatingSystem);
 
-        $layers = [];
-        foreach ($config->getLayersDefinition() as $definition) {
-            $layerBuilder = $this->layerBuilderRegistry->getBuilder($definition);
-            if (!$layerBuilder instanceof LayerBuilderInterface) {
-                continue;
+            $layers = [];
+            foreach ($config->getLayersDefinition($stage->getAlias()) as $definition) {
+                $layerBuilder = $this->layerBuilderRegistry->getBuilder($definition);
+                if (!$layerBuilder instanceof LayerBuilderInterface) {
+                    continue;
+                }
+
+                try {
+                    $layer = $layerBuilder->build($definition, $operatingSystem);
+                } catch (CannotCreateLayerException $exception) {
+                    continue;
+                }
+
+                if ($layer instanceof OperatingSystemAwareInterface) {
+                    $packageManager->requirePackages($layer->getPackages());
+                }
+
+                $layers[] = $layer;
             }
 
-            try {
-                $layer = $layerBuilder->build($definition, $operatingSystem);
-            } catch (CannotCreateLayerException $exception) {
-                continue;
+            if ($packageManager->hasPackages()) {
+                $stage->addInstruction($packageManager->getInstruction());
             }
 
-            if ($layer instanceof OperatingSystemAwareInterface) {
-                $packageManager->requirePackages($layer->getPackages());
+            foreach ($layers as $layer) {
+                $stage->addLayer($layer);
             }
-
-            $layers[] = $layer;
-        }
-
-        if ($packageManager->hasPackages()) {
-            $dockerfile->addInstruction($packageManager->getInstruction());
-        }
-
-        $dockerfile->addEmptyLine();
-
-        foreach ($layers as $layer) {
-            foreach ($layer->getInstructions() as $instruction) {
-                $dockerfile->addInstruction($instruction);
-            }
-            $dockerfile->addEmptyLine();
+            $stage->addInstruction(Instruction::emptyLine());
         }
 
         return $dockerfile;
+    }
+
+    /**
+     * @param $stagesConfig
+     * @return Stage[]
+     * @throws InvalidNameException
+     * @throws \Exception
+     */
+    private function buildStages($stagesConfig): array
+    {
+        $resolvedStages = [];
+        foreach ($stagesConfig as $i => $stage) {
+            $alias = $stage['alias'];
+            if (isset($stage['image'])) {
+                $image = Image::fromString($stage['image']);
+                $resolvedStages[$alias] = new Stage(new ImageId($image, $alias));
+                unset($stagesConfig[$i]);
+            }
+        }
+
+        $unresolved = [];
+        do {
+            foreach ($stagesConfig as $i => $stage) {
+                $parentStage = $stage['stage'];
+                $alias = $stage['alias'];
+                if (!isset($resolvedStages[$parentStage])) {
+                    if (isset($unresolved[$parentStage])) {
+                        throw new \Exception(sprintf('Circular reference (%s -> %s)', $alias, $parentStage));
+                    }
+
+                    $unresolved[$alias] = true;
+                } else {
+                    if (isset($unresolved[$alias])) {
+                        unset($unresolved[$alias]);
+                    }
+
+                    $resolvedStages[$alias] = new Stage(new StageId($resolvedStages[$parentStage], $alias));
+                    unset($stagesConfig[$i]);
+                }
+            }
+        } while(!empty($stagesConfig));
+
+        return $resolvedStages;
     }
 
     /**

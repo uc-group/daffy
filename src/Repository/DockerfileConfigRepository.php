@@ -12,7 +12,7 @@ class DockerfileConfigRepository extends EntityRepository
     public function findAllAsArray()
     {
         $qb = $this->createQueryBuilder('dc');
-        $qb->select('dc.id', 'dc.name', 'dc.baseImage', 'dc.description');
+        $qb->select('dc.id', 'dc.name', 'dc.description');
 
         return $qb->getQuery()->getArrayResult();
     }

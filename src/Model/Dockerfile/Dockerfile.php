@@ -22,8 +22,12 @@ class Dockerfile
      * @param Image $baseImage
      * @param string|null $baseImageAlias
      */
-    public function __construct(Image $baseImage, string $baseImageAlias = null)
+    public function __construct(Image $baseImage = null, string $baseImageAlias = null)
     {
+        if ($baseImage === null) {
+            return;
+        }
+
         if ($baseImageAlias === null) {
             $baseImageAlias = '0';
         }

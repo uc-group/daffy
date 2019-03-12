@@ -4,7 +4,7 @@
     <div>
         <span class="md-headline">Dockerfile: {{ config.name }}</span>
         <p>{{ config.description }}</p>
-        <d-dockerfile :config="{{ config|json_encode|e('html_attr') }}" :os="{{ operatingSystem|json_encode|e('html_attr') }}">
+        <d-dockerfile :config="{{ config|json_encode|e('html_attr') }}" :stages="{{ stages|json_encode|e('html_attr') }}">
         </d-dockerfile>
     </div>
 {% endblock %}

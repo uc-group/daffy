@@ -40,4 +40,12 @@ class ImageId implements StageIdInterface
     {
         return $this->alias;
     }
+
+    /**
+     * @return Image
+     */
+    public function getImage(): Image
+    {
+        return $this->image;
+    }
 }

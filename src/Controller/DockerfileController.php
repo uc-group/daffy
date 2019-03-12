@@ -89,13 +89,10 @@ class DockerfileController extends Controller
     /**
      * @param DockerfileConfig $config
      * @return \Symfony\Component\HttpFoundation\Response
-     * @throws \App\Exception\InvalidNameException
      * @Route("/view/{id}", name="dockerfile_view", options={"expose": true})
      */
     public function view(DockerfileConfig $config)
     {
-        $operatingSystemRepository = $this->getDoctrine()->getRepository(OperatingSystem::class);
-
         $configData = $config->jsonSerialize();
         $configData['layers'] = [];
         foreach ($config->getLayersDefinition() as $definition) {
@@ -104,7 +101,7 @@ class DockerfileController extends Controller
 
         return $this->render('dockerfile/view.html.twig', [
             'config' => $configData,
-            'operatingSystem' => $operatingSystemRepository->findOneByImage($config->getBaseImage())
+            'stages' => $config->getStages()
         ]);
     }
 
@@ -117,7 +114,7 @@ class DockerfileController extends Controller
      */
     public function build(DockerfileConfig $config, DockerfileBuilder $builder)
     {
-        return new JsonResponse(nl2br((string)$builder->build($config)));
+        return new JsonResponse((string)$builder->build($config));
     }
 
     /**

@@ -2,8 +2,11 @@
 
 namespace App\Model\Dockerfile\Stage;
 
+use App\Exception\InvalidNameException;
+use App\Model\Dockerfile\Image;
 use App\Model\Dockerfile\Instruction;
 use App\Model\Dockerfile\InstructionInterface;
+use App\Model\Dockerfile\Layer\LayerInterface;
 
 class Stage
 {
@@ -36,6 +39,16 @@ class Stage
     }
 
     /**
+     * @param LayerInterface $layer
+     */
+    public function addLayer(LayerInterface $layer): void
+    {
+        foreach ($layer->getInstructions() as $instruction) {
+            $this->instructions[] = $instruction;
+        }
+    }
+
+    /**
      * @return InstructionInterface[]
      */
     public function toInstructionList(): array
@@ -52,5 +65,17 @@ class Stage
     public function getAlias(): string
     {
         return $this->id->getAlias();
+    }
+
+    /**
+     * @return Image
+     */
+    public function getBaseImage(): Image
+    {
+        if ($this->id instanceof ImageId) {
+            return $this->id->getImage();
+        } else if ($this->id instanceof StageId) {
+            return $this->id->getStage()->getBaseImage();
+        }
     }
 }

@@ -4,8 +4,8 @@ export default {
     list() {
         return Api.get('dockerfile_list');
     },
-    create(name, baseImage, description) {
-        return Api.post('dockerfile_create', {}, {name, baseImage, description});
+    create(dockerfile) {
+        return Api.post('dockerfile_create', {}, dockerfile);
     },
     remove(id) {
         return Api.get('dockerfile_remove', {id});

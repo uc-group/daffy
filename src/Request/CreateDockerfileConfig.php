@@ -25,12 +25,18 @@ class CreateDockerfileConfig
     private $description;
 
     /**
+     * @var string|null
+     */
+    private $alias;
+
+    /**
      * @param string $name
      * @param Image $baseImage
      * @param string|null $description
      */
-    private function __construct(Image $baseImage, string $name, string $description = null)
+    private function __construct(Image $baseImage, string $name, string $alias = null, string $description = null)
     {
+        $this->alias = $alias;
         $this->name = $name;
         $this->description = $description;
         $this->baseImage = $baseImage;
@@ -64,6 +70,14 @@ class CreateDockerfileConfig
     }
 
     /**
+     * @return null|string
+     */
+    public function getAlias(): ?string
+    {
+        return $this->alias;
+    }
+
+    /**
      * @param Request $request
      * @return CreateDockerfileConfig
      * @throws InvalidNameException
@@ -75,6 +89,7 @@ class CreateDockerfileConfig
         return new self(
             Image::fromString($content['baseImage'] ?? ''),
             $content['name'] ?? '',
+            $content['alias'] ?? null,
             $content['description'] ?? null
         );
     }

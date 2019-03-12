@@ -6,6 +6,10 @@ use App\Exception\InvalidNameException;
 use App\Model\Dockerfile\Image;
 use App\Model\Dockerfile\Layer\Definition;
 use App\Model\Dockerfile\Layer\LayerInterface;
+use App\Model\Dockerfile\Stage\ImageId;
+use App\Model\Dockerfile\Stage\Stage;
+use App\Model\Dockerfile\Stage\StageId;
+use App\Model\Dockerfile\Stage\StageIdInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 
@@ -34,16 +38,10 @@ class DockerfileConfig implements \JsonSerializable
     private $description;
 
     /**
-     * @var Image
-     * @ORM\Column(type="text")
-     */
-    private $baseImage;
-
-    /**
      * @var array
-     * @ORM\Column(type="json_array")
+     * @ORM\Column(type="json_array", nullable=true)
      */
-    private $layersDefinition = [];
+    private $stages = [];
 
     /**
      * DockerfileConfig constructor.
@@ -52,28 +50,42 @@ class DockerfileConfig implements \JsonSerializable
      * @param string|null $description
      * @throws \Exception
      */
-    public function __construct(Image $baseImage, string $name, string $description = null)
+    public function __construct(Image $baseImage, string $name, string $alias = null, string $description = null)
     {
         $this->id = Uuid::uuid4();
-        $this->setBaseImage($baseImage);
         $this->name = $name;
         $this->description = $description;
+        $this->addImageStage((string)$baseImage, $alias);
+    }
+
+    /**
+     * @return array
+     */
+    public function getStageAliases()
+    {
+        $stages = [];
+        foreach ($this->stages as $stage) {
+            $stages[$stage['index']] = $stage['alias'];
+        }
+        ksort($stages);
+
+        return $stages;
     }
 
     /**
      * @param array $config
      */
-    public function setLayersDefinition(array $config)
+    public function setLayersDefinition(array $config, string $stage = null)
     {
-        $this->layersDefinition = $config;
-    }
-
-    /**
-     * @param Image $baseImage
-     */
-    public function setBaseImage(Image $baseImage)
-    {
-        $this->baseImage = (string)$baseImage;
+        if ($stage === null) {
+            $aliases = $this->getStageAliases();
+            if (empty($aliases)) {
+                return;
+            }
+            $this->stages[$aliases[0]]['layers'] = $config;
+        } else if (isset($this->stages[$stage])) {
+            $this->stages[$stage]['layers'] = $config;
+        }
     }
 
     /**
@@ -117,23 +129,69 @@ class DockerfileConfig implements \JsonSerializable
     }
 
     /**
-     * @return Image
-     * @throws InvalidNameException
+     * @return array
      */
-    public function getBaseImage(): Image
+    public function getStages(): array
     {
-        return Image::fromString($this->baseImage);
+        $aliases = $this->getStageAliases();
+        $stages = [];
+        foreach ($aliases as $alias) {
+            $stages[] = $this->stages[$alias];
+        }
+
+        return $stages;
     }
 
     /**
+     * @param string $stage
+     * @param string $alias
+     */
+    public function addStageStage(string $stage, string $alias): void
+    {
+        $this->stages[$alias] = [
+            'stage' => $stage,
+            'alias' => $alias,
+            'index' => count($this->stages),
+            'layers' => []
+        ];
+    }
+
+    /**
+     * @param string $image
+     * @param string $alias
+     */
+    public function addImageStage(string $image, string $alias): void
+    {
+        $this->stages[$alias] = [
+            'image' => $image,
+            'alias' => $alias,
+            'index' => count($this->stages),
+            'layers' => []
+        ];
+    }
+
+    /**
+     * @param string|null $stage
      * @return Definition[]
      */
-    public function getLayersDefinition(): array
+    public function getLayersDefinition(string $stage = null): array
     {
-        //TODO: create doctrine type
+        if ($stage === null) {
+            $aliases = $this->getStageAliases();
+            if (empty($aliases)) {
+                return [];
+            }
+
+            $layers = $this->stages[$aliases[0]]['layers'];
+        } else if (isset($this->stages[$stage])) {
+            $layers = $this->stages[$stage]['layers'];
+        } else {
+            $layers = [];
+        }
+
         $definitions = [];
-        foreach ($this->layersDefinition as $definition) {
-            $definitions[] = Definition::fromArray($definition);
+        foreach ($layers as $layer) {
+            $definitions[] = Definition::fromArray($layer);
         }
 
         return $definitions;
@@ -144,9 +202,11 @@ class DockerfileConfig implements \JsonSerializable
      */
     public function jsonSerialize()
     {
+        $aliases = $this->getStageAliases();
+
         return [
             'id' => $this->id,
-            'baseImage' => $this->baseImage,
+            'baseImage' => isset($aliases[0]) ? $this->stages[$aliases[0]]['image'] : null,
             'name' => $this->name,
             'description' => $this->description
         ];
